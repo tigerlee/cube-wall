@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cube Wall</title>
+  <style>
+    :root {
+      --blue-grey: #607d8b;
+    }
+
+    html, body {
+      height: 100vh;
+    }
+
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0px 40px 0px 40px;
+      background-color: var(--blue-grey);
+      color: white;
+      box-shadow: 0 2px 4px -1px rgba(0,0,0,.2), 0 4px 5px rgba(0,0,0,.14), 0 1px 10px rgba(0,0,0,.12);
+    }
+
+    header #dimension {
+      box-shadow: none;
+      font-size: 16px;
+      flex: 1;
+      margin: 0;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      min-width: 0;
+      height: 30px;
+      background-color: transparent;
+      border-style: none;
+      border-bottom: 1px solid white;
+      color: white;
+    }
+
+    header #build {
+      background-color: transparent;
+      color: white;
+      padding: 8px 16px 8px 16px;
+      font-size: 1em;
+      border-style: none;
+    }
+
+    header #build:hover {
+      background-color: lightgrey;
+      color: black;
+      border-style: none;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      margin: 40px;
+    }
+
+    #left, #right {
+      box-shadow: 0 1px 5px rgba(0,0,0,.2), 0 2px 2px rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.12);
+    }
+
+    #gutter {
+      width: 40px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2 class="title">Cube Wall</h2>
+    <div class="input">
+      <label for="dimension">Dimension(维度):</label>
+      <input id="dimension" type="number" min="2" max="1000" value="5"></input>
+      <button id="build">Build(生成)</input>
+    </div>
+  </header>
+  <main id="main">
+    <canvas id="left">left</canvas>
+    <div id="gutter"></div>
+    <canvas id="right">right</canvas>
+  </main>
+
+  <script>
+    let colors = ['white', 'red', 'blue', 'yellow', 'green', 'orange']
+
+    function generateMatrix(n) {
+      let matrix = new Array(n)
+      for (let x = 0; x < n; x++) {
+        matrix[x] = new Array(n)
+        for (let y = 0; y < n; y++) {
+          let color = colors[parseInt(Math.random() * 6)]
+          matrix[x][y] = color
+        }
+      }
+      return matrix
+    }
+
+    function drawMatrix(id, matrix) {
+      let n = matrix.length
+      let canvas = document.getElementById(id);
+      let ctx = canvas.getContext('2d');
+
+      let main = document.getElementById('main')
+      let gutter = document.getElementById('gutter')
+      canvas.width = (main.clientWidth - gutter.clientWidth) / 2
+      canvas.height = canvas.width
+
+      let width = canvas.width / n
+
+      for (let x = 0; x < n; x++) {
+        for (let y = 0; y < n; y++) {
+          ctx.fillStyle = matrix[x][y]
+          ctx.fillRect(x*width, y*width, width, width);
+          ctx.lineWidth = 0.5
+          ctx.strokeRect(x*width, y*width, width, width);
+        }
+      }
+      ctx.strokeRect(0, 0, canvas.width, canvas.width);
+    }
+
+    function build() {
+      let n = parseInt(document.getElementById('dimension').value)
+      let m = generateMatrix(n)
+      drawMatrix('left', m)
+      let x = parseInt(Math.random() * n)
+      let y = parseInt(Math.random() * n)
+      let oldColor = m[x][y]
+      let color = oldColor
+      do {
+        let colorIndex = parseInt(Math.random() * colors.length)
+        color = colors[colorIndex]
+      } while (color === oldColor)
+      console.log(`At (${x}, ${y}), replace from ${oldColor} to ${color}`)
+      m[x][y] = color
+      drawMatrix('right', m)
+    }
+    let button = document.getElementById('build')
+    button.onclick = build;
+    build()
+  </script>
+</body>
+</html>

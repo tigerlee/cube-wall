@@ -10,4 +10,4 @@ Cube Wall(魔方找茬)
 来挑战吧！
 
 ## Screenshot(屏幕截图)
-![](https://tigerlee.github.io/cube-wall/screenshot.png)
+![](https://github.com/tigerlee/cube-wall/raw/master/screenshot.png)

@@ -44,7 +44,7 @@
       color: white;
     }
 
-    header #build {
+    header #build, #help {
       background-color: transparent;
       color: white;
       padding: 8px 16px 8px 16px;
@@ -52,7 +52,7 @@
       border-style: none;
     }
 
-    header #build:hover {
+    header #build:hover, #help:hover {
       background-color: lightgrey;
       color: black;
       border-style: none;
@@ -78,8 +78,9 @@
     <h2 class="title">Cube Wall</h2>
     <div class="input">
       <label for="dimension">Dimension(维度):</label>
-      <input id="dimension" type="number" min="2" max="1000" value="5"></input>
+      <input id="dimension" type="number" min="2" max="200" value="10"></input>
       <button id="build">Build(生成)</input>
+      <button id="help">Help(帮助)</input>
     </div>
   </header>
   <main id="main">
@@ -89,62 +90,125 @@
   </main>
 
   <script>
-    let colors = ['white', 'red', 'blue', 'yellow', 'green', 'orange']
+    class Wall {
+      constructor() {
+        this.main = document.getElementById('main')
+        this.leftCanvas = document.getElementById('left')
+        this.leftCtx = this.leftCanvas.getContext('2d')
+        this.gutter = document.getElementById('gutter')
+        this.rightCanvas = document.getElementById('right')
+        this.rightCtx = this.rightCanvas.getContext('2d')
+        this.canvasWidth = (main.clientWidth - gutter.clientWidth) / 2
+        this.cellWidth = 0
+        this.colors = ['white', 'red', 'blue', 'yellow', 'green', 'orange']
 
-    function generateMatrix(n) {
+        this.leftCanvas.width = this.canvasWidth
+        this.leftCanvas.height = this.canvasWidth
+        this.rightCanvas.width = this.canvasWidth
+        this.rightCanvas.height = this.canvasWidth
+      }
+    }
+
+    Wall.prototype.generateMatrix = function() {
+      let n = this.dimension
       let matrix = new Array(n)
       for (let x = 0; x < n; x++) {
         matrix[x] = new Array(n)
         for (let y = 0; y < n; y++) {
-          let color = colors[parseInt(Math.random() * 6)]
+          let color = this.colors[parseInt(Math.random() * 6)]
           matrix[x][y] = color
         }
       }
       return matrix
     }
 
-    function drawMatrix(id, matrix) {
-      let n = matrix.length
-      let canvas = document.getElementById(id);
-      let ctx = canvas.getContext('2d');
+    Wall.prototype.drawPoint = function(ctx, x, y, color) {
+      let w = this.cellWidth
+      ctx.fillStyle = color
+      ctx.fillRect(x * w, y * w, w, w);
+      ctx.lineWidth = 0.5
+      ctx.strokeRect(x * w, y * w, w, w);
+    }
 
-      let main = document.getElementById('main')
-      let gutter = document.getElementById('gutter')
-      canvas.width = (main.clientWidth - gutter.clientWidth) / 2
-      canvas.height = canvas.width
-
-      let width = canvas.width / n
+    Wall.prototype.drawMatrix = function(ctx, matrix) {
+      let n = this.dimension
 
       for (let x = 0; x < n; x++) {
         for (let y = 0; y < n; y++) {
-          ctx.fillStyle = matrix[x][y]
-          ctx.fillRect(x*width, y*width, width, width);
-          ctx.lineWidth = 0.5
-          ctx.strokeRect(x*width, y*width, width, width);
+          this.drawPoint(ctx, x, y, matrix[x][y])
         }
       }
-      ctx.strokeRect(0, 0, canvas.width, canvas.width);
+      ctx.strokeRect(0, 0, this.canvasWidth, this.canvasWidth);
     }
 
-    function build() {
-      let n = parseInt(document.getElementById('dimension').value)
-      let m = generateMatrix(n)
-      drawMatrix('left', m)
-      let x = parseInt(Math.random() * n)
-      let y = parseInt(Math.random() * n)
-      let oldColor = m[x][y]
+    Wall.prototype.randomPoint = function() {
+      return {
+        x: parseInt(Math.random() * this.dimension),
+        y: parseInt(Math.random() * this.dimension)
+      }
+    }
+
+    Wall.prototype.randomColor = function(oldColor) {
       let color = oldColor
       do {
-        let colorIndex = parseInt(Math.random() * colors.length)
-        color = colors[colorIndex]
+        let colorIndex = parseInt(Math.random() * this.colors.length)
+        color = this.colors[colorIndex]
       } while (color === oldColor)
-      console.log(`At (${x}, ${y}), replace from ${oldColor} to ${color}`)
-      m[x][y] = color
-      drawMatrix('right', m)
+      return color
     }
-    let button = document.getElementById('build')
-    button.onclick = build;
-    build()
+
+    Wall.prototype.build = function() {
+      if (this.timerId) {
+        clearInterval(this.timerId)
+      }
+
+      this.dimension = parseInt(document.getElementById('dimension').value)
+      this.cellWidth = this.canvasWidth / this.dimension
+
+      let m = this.generateMatrix()
+      this.drawMatrix(this.leftCtx, m) 
+
+      this.matrix = m
+      this.point = this.randomPoint()
+
+      let {x, y} = this.point
+      let color = this.randomColor(m[x][x])
+      m[x][y] = color
+
+      this.drawMatrix(this.rightCtx, m)
+    }
+
+    Wall.prototype.help = function() {
+      let {x, y} = this.point
+      let color = this.matrix[x][y]
+
+      if (this.timerId) {
+        clearInterval(this.timerId)
+        this.timerId = null
+        this.blink = false
+        this.drawPoint(this.rightCtx, x, y, color)
+        return
+      }
+
+      this.timerId = setInterval(() => {
+        if (this.blink) {
+          this.drawPoint(this.rightCtx, x, y, 'black')
+        } else {
+          this.drawPoint(this.rightCtx, x, y, color)
+        }
+        this.blink = !this.blink
+      }, 300)
+      this.drawPoint(this.rightCtx, x, y, 'black')
+    }
+
+    let wall = new Wall()
+    let build = document.getElementById('build')
+    build.onclick = wall.build.bind(wall);
+
+    let help = document.getElementById('help')
+    help.onclick = wall.help.bind(wall);
+
+    wall.build()
   </script>
 </body>
 </html>

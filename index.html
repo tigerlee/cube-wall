@@ -106,8 +106,12 @@
 
         this.leftCanvas.width = this.canvasWidth
         this.leftCanvas.height = this.canvasWidth
+        this.leftCanvas.style.width = this.canvasWidth + 'px'
+        this.leftCanvas.style.height = this.canvasWidth + 'px';
         this.rightCanvas.width = this.canvasWidth
         this.rightCanvas.height = this.canvasWidth
+        this.rightCanvas.style.width = this.canvasWidth + 'px'
+        this.rightCanvas.style.height = this.canvasWidth + 'px';
       }
     }
 
@@ -162,6 +166,7 @@
     Wall.prototype.build = function() {
       if (this.timerId) {
         clearInterval(this.timerId)
+        this.timerId = null
       }
 
       this.dimension = parseInt(document.getElementById('dimension').value)

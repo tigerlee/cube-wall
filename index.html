@@ -179,7 +179,7 @@
       this.point = this.randomPoint()
 
       let {x, y} = this.point
-      let color = this.randomColor(m[x][x])
+      let color = this.randomColor(m[x][y])
       m[x][y] = color
 
       this.drawMatrix(this.rightCtx, m)
